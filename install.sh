@@ -26,6 +26,7 @@ sources=(
 	extensions/napi-minimal.sh
 	tools/clean-napi-image.sh
 	tools/clean-napi-firmware.py
+	tools/clean-napi-files.py
 	profiles/napi-minimal.conf
 )
 destinations=(
@@ -33,9 +34,10 @@ destinations=(
 	extensions/napi-minimal.sh
 	tools/clean-napi-image.sh
 	tools/clean-napi-firmware.py
+	tools/clean-napi-files.py
 	userpatches/config-napi-minimal.conf
 )
-modes=(644 644 755 755 644)
+modes=(644 644 755 755 755 644)
 
 # Check all destinations before changing files.
 for index in "${!sources[@]}"; do

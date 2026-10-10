@@ -13,3 +13,14 @@ function post_repo_customize_image__990_napi_minimal() {
 	run_host_command_logged bash "${SRC}/tools/clean-napi-image.sh" \
 		"${SDCARD}" "${SRC}/config/cleanup/napi-c.conf" --apply
 }
+
+function post_post_debootstrap_tweaks__990_napi_minimal_apt_lists() {
+ [[ ${BOARD} == napi-c ]] || return 0
+ local -a INSTALL_PACKAGES REMOVE_PACKAGES KEEP_PACKAGES KEEP_DOCUMENTATION KEEP_KERNEL_DTBS
+ local -a KEEP_FIRMWARE KERNEL_DISABLE KERNEL_ENABLE
+ local REMOVE_MAN_PAGES REMOVE_DOCUMENTATION REMOVE_APT_LISTS PRUNE_KERNEL_DTBS PRUNE_FIRMWARE
+ source "${SRC}/config/cleanup/napi-c.conf"
+ if [[ $REMOVE_APT_LISTS == yes ]]; then
+  run_host_command_logged python3 "${SRC}/tools/clean-napi-files.py" "${SDCARD}" --apply apt
+ fi
+}

@@ -14,6 +14,12 @@ root=$(realpath -e -- "$1")
 	echo "Expected an Armbian image root directory." >&2
 	exit 1
 }
+INSTALL_PACKAGES=()
+REMOVE_DOCUMENTATION=no
+KEEP_DOCUMENTATION=()
+REMOVE_APT_LISTS=no
+PRUNE_KERNEL_DTBS=no
+KEEP_KERNEL_DTBS=()
 REMOVE_PACKAGES=()
 KEEP_PACKAGES=(nano)
 REMOVE_MAN_PAGES=no
@@ -21,6 +27,16 @@ PRUNE_FIRMWARE=no
 KEEP_FIRMWARE=()
 # shellcheck source=/dev/null
 source "$2"
+
+if ((${#INSTALL_PACKAGES[@]})); then
+ for package in "${INSTALL_PACKAGES[@]}"; do
+  [[ $package =~ ^[a-z0-9][a-z0-9+.-]*$ ]] || exit 1
+ done
+ chroot "$root" apt-get --simulate --no-install-recommends install "${INSTALL_PACKAGES[@]}"
+ if [[ $mode == --apply ]]; then
+  chroot "$root" env DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install "${INSTALL_PACKAGES[@]}"
+ fi
+fi
 
 installed=()
 for package in "${REMOVE_PACKAGES[@]}"; do
@@ -59,4 +75,15 @@ if [[ $REMOVE_MAN_PAGES == yes ]]; then
 			find "$root/usr/share/man" -mindepth 1 -delete
 		fi
 	fi
+fi
+
+helper="$(dirname "${BASH_SOURCE[0]}")/clean-napi-files.py"
+if [[ $REMOVE_DOCUMENTATION == yes ]]; then
+ python3 "$helper" "$root" "$mode" docs "${KEEP_DOCUMENTATION[@]}"
+fi
+if [[ $PRUNE_KERNEL_DTBS == yes ]]; then
+ python3 "$helper" "$root" "$mode" dtbs "${KEEP_KERNEL_DTBS[@]}"
+fi
+if [[ $REMOVE_APT_LISTS == yes ]]; then
+ python3 "$helper" "$root" "$mode" apt
 fi
